@@ -99,16 +99,7 @@ class ContinuationSolver
 		 * 
 		 * 	boxcont (optional) indicates to use BoxCont.
 		 **/
-		ContinuationSolver(Function& f, const IntervalVector& u, bool boxcont=false)
-		:	equations(f),
-			universe(u),
-			boxcont(boxcont),
-			hmin(1e-9),
-			alpha(0.5),
-			beta(1.1),
-			flag_heuristic_init(false)
-		{}
-
+		ContinuationSolver(Function& f, const IntervalVector& u, bool boxcont=false);
 	
 		/**
 		 * 	\brief Execution of the continuation algorithm

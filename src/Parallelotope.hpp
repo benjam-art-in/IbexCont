@@ -68,8 +68,8 @@ class Parallelotope {
 		 * 	- a step length h,
 		 * 	- a vector tan approximately tangent to jac.
 		 **/		
-		Parallelotope(const Vector& xtilde, const IntervalMatrix& jac, double h, const Vector& tan)
-		:	C(transformation(jac.mid(), tan)),
+		Parallelotope(const Vector& xtilde, const Matrix& jac, double h, const Vector& tan)
+		:	C(transformation(jac, tan)),
 			w(auxiliary_box(xtilde.size(),h)),
 			xtilde(xtilde),
 			Cinv(computeInvMatrix(C))

@@ -73,6 +73,8 @@ class ContinuationDomain
 		 * 	\brief Builds an interval hull of the domain.
 		 **/
 		virtual IntervalVector hull() const = 0;
+		
+		virtual void print() const = 0;
 }; // ContinuationDomain
 
 inline bool ContinuationDomain::not_intersects(const ContinuationDomain& d) const
@@ -140,6 +142,8 @@ class ContinuationDomainBox : public ContinuationDomain
 		 * 	\brief Builds an interval hull of the domain.
 		 **/
 		IntervalVector hull() const;
+		
+		void print() const;
 	
 	
 		// the box
@@ -174,6 +178,7 @@ inline IntervalVector ContinuationDomainBox::hull() const
 {
 	return x;
 }
+
 
 /**
  * 	\brief Class implementing the Parallelotope continuation domain. 
@@ -227,6 +232,7 @@ class ContinuationDomainParallelotope : public ContinuationDomain
 		 **/
 		IntervalVector hull() const;
 		
+		void print() const;
 		
 		// the Parallelotope
 		Parallelotope x;

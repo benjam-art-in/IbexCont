@@ -81,9 +81,22 @@ bool ContinuationSolver::ContinuationDirectionBuilder::buildNewDirection(Functio
 
 /** ContinuationSolver **/
 
+ContinuationSolver::ContinuationSolver(Function& f, const IntervalVector& u, bool boxcont)
+:	equations(f),
+	universe(u),
+	boxcont(boxcont),
+	hmin(1e-9),
+	alpha(0.5),
+	beta(1.1),
+	flag_heuristic_init(false)
+{}
+
 void ContinuationSolver::solve(const Vector& init)
 {
-	// std::cout <<"ParCont solver" << std::endl;
+	std::cout <<"ParCont solver" << std::endl;
+	std::cout << "alpha " << alpha << std::endl;
+	std::cout << "beta " << beta << std::endl;
+	std::cout << "hmin " << hmin << std::endl;
 	size_t n = equations.nb_var();
 
 	ContinuationDirectionBuilder contbuild(n);
@@ -92,7 +105,6 @@ void ContinuationSolver::solve(const Vector& init)
 	bool stop = false;
 	double h = 1.0; // Initial step length
 	
-
 	std::vector<ContinuationDomain*> checkpoints(0);
 	checkpoints.push_back(nullptr);
 	std::vector<ContinuationDomain*> manifold(0);
@@ -103,7 +115,16 @@ void ContinuationSolver::solve(const Vector& init)
 	
 	
 	Vector xtildek(init);
-	contbuild.buildNewDirection(equations, xtildek);
+	
+	try{
+		contbuild.buildNewDirection(equations, xtildek);
+	}
+	catch(SingularMatrixException& e)
+	{
+		std::cout << "SingularMatrixException at first tangent construction." << std::endl;
+		return;
+	}
+	
 	bool lastFail = true;
 	while (! stop)
 	{
@@ -111,10 +132,19 @@ void ContinuationSolver::solve(const Vector& init)
 		
 		// Build a new domain
 		ContinuationDomain* xcurrent = buildNewContinuationDomain(boxcont, contbuild, h, xtildek, checkpoints[k-1], (flag_heuristic_init && !lastFail) ? manifold[k-2] : nullptr);
-		
+		//xcurrent->print();
 		// Prove xcurrent contains the manifold
-		bool success = xcurrent->certify(equations);
-		//std::cout << "certified ?" << success << std::endl;
+		bool success = false;
+		try{
+			success = xcurrent->certify(equations);
+		}
+		catch(SingularMatrixException& e)
+		{
+			std::cout << "SingularMatrixException when certifying." << std::endl;
+			return;
+		}
+		
+		//~ std::cout << "certified ?" << success << std::endl;
 		// If so, then contract the "output" side of the parallelotope
 		ContinuationDomain* newcheck = nullptr;
 		IntervalVector newcheck_hull(n);
@@ -124,7 +154,15 @@ void ContinuationSolver::solve(const Vector& init)
 		{
 			//std::cout << "validate the success" << std::endl;
 			// contract Out
-			newcheck = xcurrent->contractOut(equations);
+			try{
+				newcheck = xcurrent->contractOut(equations);
+			}
+			catch(SingularMatrixException& e)
+			{
+				std::cout << "SingularMatrixException when contracting out" << std::endl;
+				return;
+			}
+			
 			newcheck_hull = newcheck->hull();
 			
 			// Validate the sucess: 1) No backtrack 2) loop from the begining 3) Crossing the domain or remaining inside
@@ -141,6 +179,19 @@ void ContinuationSolver::solve(const Vector& init)
 			// update the success status accordingly
 			success = no_backtrack  && no_loop && no_domain;	
 		}
+		//~ else
+		//~ {	
+			//~ int t;
+			//~ std::cout << "Fail ! h = " << h << ". Abort ?" << std::endl;
+			
+			//~ std::cin >> t;
+			//~ if(t == 1)
+			//~ {
+				//~ manifold_out = manifold;
+				//~ checkpoints_out = checkpoints;
+				//~ return;
+			//~ }
+		//~ }
 
 		
 		
@@ -151,7 +202,14 @@ void ContinuationSolver::solve(const Vector& init)
 			if (k == 1)
 			{
 				// contract In and considers it as the first checkpoint
-				checkpoints[0] = xcurrent->contractIn(equations);
+				try{
+					checkpoints[0] = xcurrent->contractIn(equations);
+				}
+				catch(SingularMatrixException& e)
+				{
+					std::cout << "SingularMatrixException when contracting in" << std::endl;
+					return;
+				}
 			}
 			manifold.push_back(xcurrent);
 			checkpoints.push_back(newcheck);

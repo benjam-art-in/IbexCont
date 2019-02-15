@@ -66,6 +66,13 @@ namespace ibex {
 		return db;
 	}
 
+	void ContinuationDomainBox::print() const
+	{
+		std::cout << "BoxDomain : " << std::endl;
+		std::cout << "Box : " << x << std::endl;
+		std::cout << "VarSet : " << vs << std::endl;
+		std::cout << "Sign : " << sign << std::endl;
+	}
 
 	/** ContinuationDomainParallelotope **/
 		
@@ -86,7 +93,7 @@ namespace ibex {
 		IntervalVector xu(x.w);
 		
 		// Attempt to certify the parallelotope
-		bool cert = inflating_newton(pf, vs, x.w, xe, xu);
+		bool cert = inflating_newton(pf, vs, x.w, xe, xu);//, 15, 1, 1.1, 0.0);
 		
 		if (cert)
 		{
@@ -110,7 +117,7 @@ namespace ibex {
 	{
 		size_t n = x.size();
 		// Creation of the VarSet for parametric Newton
-		// NOTE: we could avoid this by having a newton automatically
+		// NOTE: we could avoid this by having a newton auomatically
 		// assuming the last components being the parameters
 		BitSet bs = BitSet::all(n);
 		bs.remove(n-1);
@@ -125,11 +132,19 @@ namespace ibex {
 		ContinuationDomainParallelotope* dp = new ContinuationDomainParallelotope(Parallelotope(x, wn));
 		
 		// Attempt to contract the parallelotope
-		bool cert = newton(pf, vs, dp->x.w);
+		bool cert = newton(pf, vs, dp->x.w);//, 1e-20, 1e-16);
 		
 		return dp;
 	}
 	
+	void ContinuationDomainParallelotope::print() const
+	{
+		std::cout << "ParallelotopeDomain : " << std::endl;
+		std::cout << "Transition : " << x.C << std::endl;
+		std::cout << "Box : " << x.w << std::endl;
+		std::cout << "xtilde : " << x.xtilde << std::endl;
+		std::cout << "hull : " << x.hull() << std::endl;
+	}
 	
 	/** FactoryContinuationDomain **/
 	
@@ -182,7 +197,18 @@ namespace ibex {
 	ContinuationDomain* FactoryContinuationDomain::constructDomainParallelotope(const Vector& dir, const IntervalMatrix& jac, const Vector& xmid, double h, const ContinuationDomain* in, ContinuationDomain* previous)
 	{
 		Vector xtilde(xmid);
-		Parallelotope p(xtilde, jac, h, dir);
+		
+		// TEST: normalisation of the rows of the jacobian
+		Matrix jmid(jac.mid());
+		for(int i = 0; i < jac.nb_rows(); ++i)
+		{
+			Vector& r = jmid.row(i);
+			double norminv = 1.0 / norm(r);
+			r *= norminv;
+		}
+		
+		
+		Parallelotope p(xtilde, jmid, h, dir);
 		
 		// Enforce to contain the last output
 		if (in)
