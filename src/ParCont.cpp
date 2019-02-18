@@ -97,10 +97,10 @@ ContinuationSolver::ContinuationSolver(Function& f, const IntervalVector& u, boo
 
 void ContinuationSolver::solve(const Vector& init, double hstart)
 {
-	std::cout <<"ParCont solver" << std::endl;
-	std::cout << "alpha " << alpha << std::endl;
-	std::cout << "beta " << beta << std::endl;
-	std::cout << "hmin " << hmin << std::endl;
+	//~ std::cout <<"ParCont solver" << std::endl;
+	//~ std::cout << "alpha " << alpha << std::endl;
+	//~ std::cout << "beta " << beta << std::endl;
+	//~ std::cout << "hmin " << hmin << std::endl;
 	size_t n = equations.nb_var();
 
 	ContinuationDirectionBuilder contbuild(n);
