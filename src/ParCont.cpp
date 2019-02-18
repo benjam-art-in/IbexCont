@@ -81,17 +81,21 @@ bool ContinuationSolver::ContinuationDirectionBuilder::buildNewDirection(Functio
 
 /** ContinuationSolver **/
 
-ContinuationSolver::ContinuationSolver(Function& f, const IntervalVector& u, bool boxcont)
+double ContinuationSolver::default_hmin = 1e-9;
+double ContinuationSolver::default_alpha = 0.5;
+double ContinuationSolver::default_beta = 1.1;
+
+ContinuationSolver::ContinuationSolver(Function& f, const IntervalVector& u, bool boxcont, double hmin, double alpha, double beta)
 :	equations(f),
 	universe(u),
 	boxcont(boxcont),
-	hmin(1e-9),
-	alpha(0.5),
-	beta(1.1),
+	hmin(hmin),
+	alpha(alpha),
+	beta(beta),
 	flag_heuristic_init(false)
 {}
 
-void ContinuationSolver::solve(const Vector& init)
+void ContinuationSolver::solve(const Vector& init, double hstart)
 {
 	std::cout <<"ParCont solver" << std::endl;
 	std::cout << "alpha " << alpha << std::endl;
@@ -103,7 +107,7 @@ void ContinuationSolver::solve(const Vector& init)
 		
 	size_t k = 1;
 	bool stop = false;
-	double h = 1.0; // Initial step length
+	double h = hstart; // Initial step length
 	
 	std::vector<ContinuationDomain*> checkpoints(0);
 	checkpoints.push_back(nullptr);

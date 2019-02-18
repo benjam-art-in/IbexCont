@@ -92,19 +92,28 @@ class ContinuationSolver
 				Vector lastTangent;
 		}; // ContinuationDirectionBuilder
 
-
+		// default parameters
+		static double default_hmin;
+		static double default_alpha;
+		static double default_beta;
+		
 		/**
 		 * 	\brief Constructor for the continuation solver on the system
 		 * 	f = 0 and universe box u.
 		 * 
 		 * 	boxcont (optional) indicates to use BoxCont.
 		 **/
-		ContinuationSolver(Function& f, const IntervalVector& u, bool boxcont=false);
+		ContinuationSolver(	Function& f, 
+							const IntervalVector& u, 
+							bool boxcont=false,
+							double hmin = default_hmin,
+							double alpha = default_alpha,
+							double beta = default_beta);
 	
 		/**
 		 * 	\brief Execution of the continuation algorithm
 		 **/
-		void solve(const Vector& init);
+		void solve(const Vector& init, double hstart = 1.0);
 		
 		/**
 		 * 	\brief Resets the outputs of the solver.
@@ -138,6 +147,8 @@ class ContinuationSolver
 		std::vector<ContinuationDomain*> manifold_out;
 		std::vector<ContinuationDomain*> checkpoints_out;
 		
+		
+
 }; // ContinuationSolver
 
 } // namespace ibex
