@@ -11,8 +11,10 @@
 #include <stdlib.h>
 #include <vector>
 
-#include "ParCont.hpp"
-#include "ContinuationDomain.hpp"
+#include "ibex_ParCont.h"
+#include "ibex_Kernel.h"
+#include "ibex_Linear.h"
+#include "ibex_ContinuationDomain.h"
 
 namespace ibex {
 	

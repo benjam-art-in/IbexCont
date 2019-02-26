@@ -8,8 +8,9 @@
  * Last Update : 
  * ---------------------------------------------------------------------------- */
 
-#include "ContinuationDomain.hpp"
-#include "ParFnc.hpp"
+#include "ibex_ContinuationDomain.h"
+#include "ibex_ParFnc.h"
+#include "ibex_Newton.h"
 
 namespace ibex {
 	

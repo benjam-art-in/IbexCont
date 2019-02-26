@@ -11,8 +11,8 @@
 #ifndef __IBEX_CONTINUATION_DOMAIN_H__
 #define __IBEX_CONTINUATION_DOMAIN_H__
 
-#include <ibex.h>
-#include "Parallelotope.hpp"
+#include "ibex_Parallelotope.h"
+#include "ibex_Function.h"
 
 namespace ibex {
 
