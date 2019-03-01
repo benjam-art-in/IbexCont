@@ -12,7 +12,7 @@
 #define __IBEX_PARFNC_H__
 
 #include <ibex.h>
-#include "Parallelotope.hpp"
+#include "ibex_Parallelotope.h"
 
 namespace ibex {
 

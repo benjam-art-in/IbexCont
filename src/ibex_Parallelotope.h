@@ -11,8 +11,8 @@
 #ifndef __IBEX_PARALLELOTOPE_H__
 #define __IBEX_PARALLELOTOPE_H__
 
+#include "ibex_IntervalMatrix.h"
 
-#include<ibex.h>
 
 namespace ibex
 {

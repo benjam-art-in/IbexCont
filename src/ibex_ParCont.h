@@ -12,9 +12,7 @@
 #define __IBEX_CONTINUATION_SOLVER_H__
 
 #include <vector>
-#include <ibex.h>
-
-#include "ContinuationDomain.hpp"
+#include "ibex_ContinuationDomain.h"
 
 namespace ibex {
 
