@@ -133,6 +133,8 @@ int main(int argc, char** argv) {
 		}
 		//cout << "initial " << init << endl;
 		
+		//cout << eq.f_ctrs << endl;
+		
 		// Create the continuation solver
 		ContinuationSolver solver(	eq.f_ctrs,
 									sys.box,
