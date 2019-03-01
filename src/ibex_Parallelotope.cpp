@@ -8,7 +8,8 @@
  * Last Update : 
  * ---------------------------------------------------------------------------- */
 
-#include "Parallelotope.hpp"
+#include "ibex_Parallelotope.h"
+#include "ibex_Linear.h"
 
 namespace ibex {
 	

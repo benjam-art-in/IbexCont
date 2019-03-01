@@ -16,7 +16,7 @@
 #include <ctime> // Temporary
 
 #include "args.hxx"
-#include "ParCont.hpp"
+#include "ibex_ParCont.h"
 #include <sstream>
 
 //~ #ifndef _IBEX_WITH_CONT1_
