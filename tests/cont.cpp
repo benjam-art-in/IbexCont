@@ -8,17 +8,17 @@
  * Last Update : 
  * ---------------------------------------------------------------------------- */
 
-#include <ibex.h>
+//#include <ibex.h>
 #include <fstream>
 #include <string.h>
 #include <stdlib.h>
 #include <vector>
 #include <ctime>
 
-#include "ParCont.hpp"
-#include "ContinuationDomain.hpp"
-#include "Parallelotope.hpp"
-#include "ParFnc.hpp"
+#include "ibex_ContinuationSolver.h"
+#include "ibex_ContinuationDomain.h"
+#include "ibex_Parallelotope.h"
+#include "ibex_ParFnc.h"
 
 
 //#define __USE_VIBES__
@@ -53,21 +53,21 @@ void draw_paral(const Parallelotope& p, string s = "r[]")
 	vibes::drawPolygon(x,y,s);
 }
 
-void draw_parals(const vector<ContinuationDomain*> v)
+void draw_parals(const vector<ContinuationDomain*> v, const string& c = "r[]")
 {
 	for(auto p : v)
 	{
 		ContinuationDomainParallelotope* dp = (ContinuationDomainParallelotope*) p;
-		draw_paral(dp->x);
+		draw_paral(dp->x, c);
 	}
 }
 
-void draw_boxes(const vector<ContinuationDomain*> v)
+void draw_boxes(const vector<ContinuationDomain*> v, const string& c = "r[]")
 {
 	for(auto p : v)
 	{
 		ContinuationDomainBox* db = (ContinuationDomainBox*) p;
-		vibes::drawBox(db->x, "r[]");
+		vibes::drawBox(db->x, c);
 	}
 }
 #endif
@@ -220,7 +220,7 @@ void test_cont_solver()
 	vibes::beginDrawing();
 	vibes::newFigure("ParCont");
 	vibes::drawCircle(0.0,0.0,1.0,"k");
-	draw_parals(solver.manifold_out);
+	draw_parals(solver.manifold);
 	vibes::endDrawing();
 	#endif
 }
@@ -228,7 +228,7 @@ void test_cont_solver()
 void test_cont_flower()
 {
 	
-	double eps = 0.991;
+	double eps = 0.999;
 	Variable x("x"),y("y");
 	Function f(x,y,
 		pow(x,8) -(1-eps)*pow(x,6) + 4*pow(x,6)*pow(y,2) - (3+15*eps)*pow(x,4)*pow(y,2) + 6*pow(x,4)*pow(y,4) 
@@ -258,19 +258,69 @@ void test_cont_flower()
 		clock_t start = clock();
 		solver.solve(xtilde);
 		cout << "Solving during " << ((double)(clock()-start))/CLOCKS_PER_SEC << " s" << endl;
-		cout << "Produced " << solver.manifold_out.size() << " elements" << endl;
+		cout << "Produced " << solver.manifold.size() << " elements" << endl;
 		
 		#ifdef __USE_VIBES__
 		vibes::beginDrawing();
 		if(box)
 		{
-			vibes::newFigure("BoxCont Flower");
-			draw_boxes(solver.manifold_out);
+			//vibes::newFigure("BoxCont Flower");
+			draw_boxes(solver.manifold, "b[]");
 		}
 		else
 		{
 			vibes::newFigure("ParCont Flower");
-			draw_parals(solver.manifold_out);
+			draw_parals(solver.manifold, "r[]");
+		}
+		vibes::endDrawing();
+		#endif
+		
+		box = !box;
+	}
+}
+
+void test_cont_heart()
+{
+	double eps = 0.000005;
+	Variable x("x"),y("y");
+	Function f(x,y,
+		pow(sqr(x)+sqr(y)-1,3)-sqr(x)*pow(y,3)-eps
+		//(sqr(x)+sqr(y)-1)*(sqr(x-eps)+sqr(y)-1)*(sqr(x+eps)+sqr(y)-1)-sqr(x)*pow(y,3)
+	);
+	
+	Vector xtilde(2);
+	xtilde[0]=0;
+	xtilde[1]=1.1;
+	
+	IntervalVector universe(2, Interval(-2,2));
+	
+	bool box = false;
+	for(int i = 0; i < 2; ++i)
+	{
+		if(box)
+			cout << "BoxCont" << endl;
+		else
+			cout << "ParCont" << endl;
+			
+		ContinuationSolver solver(f, universe,box);
+		
+		
+		clock_t start = clock();
+		solver.solve(xtilde);
+		cout << "Solving during " << ((double)(clock()-start))/CLOCKS_PER_SEC << " s" << endl;
+		cout << "Produced " << solver.manifold.size() << " elements" << endl;
+		
+		#ifdef __USE_VIBES__
+		vibes::beginDrawing();
+		if(box)
+		{
+			//vibes::newFigure("BoxCont Heart");
+			draw_boxes(solver.manifold, "b[]");
+		}
+		else
+		{
+			vibes::newFigure("ParCont Heart");
+			draw_parals(solver.manifold, "r[]");
 		}
 		vibes::endDrawing();
 		#endif
@@ -304,7 +354,7 @@ void test_cont_condition()
 		clock_t start = clock();
 		solver.solve(xtilde);
 		cout << "Solving during " << ((double)(clock()-start))/CLOCKS_PER_SEC << " s" << endl;
-		cout << "Produced " << solver.manifold_out.size() << " elements" << endl;
+		cout << "Produced " << solver.manifold.size() << " elements" << endl;
 		
 		
 		box = !box;
@@ -314,8 +364,8 @@ void test_cont_condition()
 
 void test_cont_dimension()
 {
-	size_t n = 8;
-	double eps = 1e-3;
+	size_t n = 32;
+	double eps = 1;//e-3;
 	
 	
 	Matrix Q = Matrix::eye(n);
@@ -356,7 +406,7 @@ void test_cont_dimension()
 		clock_t start = clock();
 		solver.solve(xtilde);
 		cout << "Solving during " << ((double)(clock()-start))/CLOCKS_PER_SEC << " s" << endl;
-		cout << "Produced " << solver.manifold_out.size() << " elements" << endl;
+		cout << "Produced " << solver.manifold.size() << " elements" << endl;
 		
 		
 		box = !box;
@@ -399,21 +449,81 @@ void test_cont_param_synthesis_RRRRRR()
 	clock_t start = clock();
 	solver.solve(xtilde);
 	cout << "Solving during " << ((double)(clock()-start))/CLOCKS_PER_SEC << " s" << endl;
-	cout << "Produced " << solver.manifold_out.size() << " elements" << endl;
+	cout << "Produced " << solver.manifold.size() << " elements" << endl;
 
 	//*
 	if(box)
-		print_boxes3D_mathematica(solver.manifold_out);
+		print_boxes3D_mathematica(solver.manifold);
 	else
-		print_parals3D_mathematica(solver.manifold_out);
+		print_parals3D_mathematica(solver.manifold);
 	//*/
 	
 }
 
+void test_normalize_paral()
+{
+	double eps = 0.999;
+	Variable x("x"),y("y");
+	Function f(x,y,
+		pow(x,8) -(1-eps)*pow(x,6) + 4*pow(x,6)*pow(y,2) - (3+15*eps)*pow(x,4)*pow(y,2) + 6*pow(x,4)*pow(y,4) 
+	- (3-15*eps)*pow(x,2)*pow(y,4) + pow(y,8) -(1+eps)*pow(y,6) + 4*pow(y,6)*pow(x,2)
+	);
+	
+	Vector xtilde(2);
+	xtilde[0]=0;
+	xtilde[1]=sqrt(eps+1);
+	
+	xtilde[0] = sqrt(1-eps);
+	xtilde[1] = 0;
+	
+	IntervalMatrix J(f.jacobian(xtilde));
+	Vector g(J.row(0).mid());
+	g = (1.0/ norm(g)) * g;
+	Matrix C(2,2);
+	C.set_row(0, g);
+	
+	Matrix K(kernel(J.mid()));
+	C.set_row(1, K.row(0));
+	
+	cout << "J" << endl;
+	cout << J << endl;
+	cout << "C" << endl;
+	cout << C << endl;
+	cout << "C-" << endl;
+	Matrix InvC(real_inverse(C));
+	cout << InvC << endl;
+	cout << J*InvC << endl;
+	
+	IntervalVector w(2, Interval(0.0,0.0));
+	w[1] = Interval(0.0, 1e-5);
+	
+	J = f.jacobian(InvC*w + xtilde)*InvC;
+	cout << J << endl;
+	
+	
+}
+
+//~ void test_minibex()
+//~ {
+	//~ System sys("examples/flower.txt");
+	//~ Vector xinit(2);
+	//~ xinit[0] = 0; xinit[1] = 1.41;
+	
+	//~ System sys("examples/ellipsoidal_3_1.0.txt")
+	//~ Vector xinit(3);
+	
+	
+	
+	//~ // Get the equations
+	//~ System eq(sys, System::EQ_ONLY);
+//~ }
+
 int main() {
 
-	//	test_cont_flower();
+	// test_cont_flower();
+	test_cont_heart();
 	//	test_cont_condition();
 	//	test_cont_dimension();
-	test_cont_param_synthesis_RRRRRR();
+	//test_cont_param_synthesis_RRRRRR();
+	//~ test_normalize_paral();
 }

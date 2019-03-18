@@ -12,7 +12,10 @@
 #define __IBEX_CONTINUATION_SOLVER_H__
 
 #include <vector>
+#include "ibex_CovIBUList.h"
 #include "ibex_ContinuationDomain.h"
+#include "ibex_CovContinuation.h"
+#include "ibex_Timer.h"
 
 namespace ibex {
 
@@ -32,6 +35,19 @@ class ContinuationSolver
 {
 	public:
 
+		/**
+		 *	\brief Status of the solver (TODO: unused).
+		 *	- TANGENT_FAILURE: failure when computing a tangent direction.
+		 *	- BACKTRACK: the recently constructed domains goes backward.
+		 *	(may indicate an error in tangent computation)
+		 *	- LOW_STEP: stoped due to the step size reaching the minimal value.
+		 *  - MAX_STEP_NUMBER: stoped due to exceeding the maximal number of steps
+		 *  - TIME_OUT: stoped due to time out
+		 *	- EXITS_UNIVERSE: the solutions have been successfully followed and crossed
+		 * 	the boundary of the 'universe' box.
+		 * 	- LOOP: the manifold is periodic within the universe.
+		 **/
+		enum class Status { TANGENT_FAILURE, BACKTRACK, LOW_STEP, MAX_STEP_NUMBER, TIME_OUT, EXITS_UNIVERSE, LOOP }; 
 
 		/**
 		 * 	\brief Sublcass for managing the construction of tangent vectors.
@@ -108,6 +124,8 @@ class ContinuationSolver
 							double alpha = default_alpha,
 							double beta = default_beta);
 	
+		~ContinuationSolver();
+		
 		/**
 		 * 	\brief Execution of the continuation algorithm
 		 **/
@@ -116,8 +134,30 @@ class ContinuationSolver
 		/**
 		 * 	\brief Resets the outputs of the solver.
 		 **/
-		void reset();
+		void flush();
 		
+		
+		/**
+		 * \brief Display in the prompt the current state of the solver
+		 **/
+		void report();
+		
+		/**
+		 * \brief get the number of (succesfully) produced domains
+		 **/
+		size_t get_nb_domains() const;
+		
+		void save_cov(const char* filename) const;
+		
+	protected:
+		
+		void init_solving(size_t n);
+		
+		void stop_solving(Status stat);
+		
+		void check_time();
+		
+		void check_domain_limit();
 		
 		// The n-1 x n system of equations
 		Function& equations;
@@ -140,14 +180,50 @@ class ContinuationSolver
 		// flag for using the domain initialisation heuristic
 		bool flag_heuristic_init;
 		
+		
+		double time;
+		
+		Timer timer;
+		
+		unsigned int nb_iterations;
+		
+		unsigned int nb_domains;
+		
+		unsigned int nb_components;
+		
+		Status solving_status;
+		
+		public:
+		
+		// time limit (unused)
+		double time_limit;
+		
+		// limit of the number of 
+		unsigned int domain_limit;
+		
 		// For the output: the domains covering the manifold and their 
 		// exit sides.
-		std::vector<ContinuationDomain*> manifold_out;
-		std::vector<ContinuationDomain*> checkpoints_out;
+		std::vector<ContinuationDomain*> manifold;
+		std::vector<ContinuationDomain*> checkpoints;
 		
+		CovContinuation* cov;
 		
-
 }; // ContinuationSolver
+
+inline size_t ContinuationSolver::get_nb_domains() const
+{
+	return nb_domains;
+}
+
+inline void ContinuationSolver::save_cov(const char* filename) const
+{
+	cov->save(filename);
+}
+
+//~ inline ContinuationSolver::report()
+//~ {
+	//~ // Not implemented
+//~ }
 
 } // namespace ibex
 

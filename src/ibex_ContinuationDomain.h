@@ -75,6 +75,7 @@ class ContinuationDomain
 		virtual IntervalVector hull() const = 0;
 		
 		virtual void print() const = 0;
+		
 }; // ContinuationDomain
 
 inline bool ContinuationDomain::not_intersects(const ContinuationDomain& d) const
@@ -91,6 +92,8 @@ inline bool ContinuationDomain::is_superset(const ContinuationDomain& d) const
  * 	\brief Class implementing the Box domain for continuation. 
  * 
  * Used for implementing the BoxCont continuation algorithm.
+ * 
+ * TODO: not necessary to store a varset explicitly ? 
  **/
 class ContinuationDomainBox : public ContinuationDomain
 {
@@ -114,45 +117,45 @@ class ContinuationDomainBox : public ContinuationDomain
 		 * \brief Certify the existence and unicity of a piece
 		 * of manifold of solution to f = 0.
 		 **/
-		bool certify(Function& f);
+		virtual bool certify(Function& f);
 		
 		/**
 		 * 	\brief Contract on the side of the domain where the manifold "enters"
 		 *  the domain. Returns the corresponding domain.
 		 **/
-		ContinuationDomain* contractIn(Function& f);
+		virtual ContinuationDomain* contractIn(Function& f);
 		
 		/**
 		 * 	\brief Contract on the side of the domain where the manifold "exits"
 		 *  the domain. Returns the corresponding domain
 		 **/
-		ContinuationDomain* contractOut(Function& f);
+		virtual ContinuationDomain* contractOut(Function& f);
 
 		/**
 		 * 	\brief Empty intersection test between the domain and a box.
 		 **/
-		bool not_intersects(const IntervalVector& b) const;
+		virtual bool not_intersects(const IntervalVector& b) const;
 		
 		/**
 		 * 	\brief Tests whether the domain contains a box.
 		 **/
-		bool is_superset(const IntervalVector& b) const;
+		virtual bool is_superset(const IntervalVector& b) const;
 		
 		/**
 		 * 	\brief Builds an interval hull of the domain.
 		 **/
-		IntervalVector hull() const;
+		virtual IntervalVector hull() const;
 		
-		void print() const;
+		virtual void print() const;
 	
 	
-		// the box
+		/** \brief the box **/
 		IntervalVector x;
 		
-		// the VarSet identifying the "crossed" parameter
+		/** \brief the VarSet identifying the "crossed" parameter **/
 		VarSet vs;
 		
-		// the direction of the manifold within the box
+		/** \brief the direction of the manifold within the box **/
 		bool sign;
 		
 	private:
@@ -203,36 +206,36 @@ class ContinuationDomainParallelotope : public ContinuationDomain
 		 * \brief Certify the existence and unicity of a piece
 		 * of manifold of solution to f = 0.
 		 **/
-		bool certify(Function& f);
+		virtual bool certify(Function& f);
 		
 		/**
 		 * 	\brief Contract on the side of the domain where the manifold "enters"
 		 *  the domain. Returns the corresponding domain.
 		 **/
-		ContinuationDomain* contractIn(Function& f);
+		virtual ContinuationDomain* contractIn(Function& f);
 		
 		/**
 		 * 	\brief Contract on the side of the domain where the manifold "exits"
 		 *  the domain. Returns the corresponding domain
 		 **/
-		ContinuationDomain* contractOut(Function& f);
+		virtual ContinuationDomain* contractOut(Function& f);
 		
 		/**
 		 * 	\brief Empty intersection test between the domain and a box.
 		 **/
-		bool not_intersects(const IntervalVector& b) const;
+		virtual bool not_intersects(const IntervalVector& b) const;
 		
 		/**
 		 * 	\brief Tests whether the domain contains a box.
 		 **/
-		bool is_superset(const IntervalVector& b) const;
+		virtual bool is_superset(const IntervalVector& b) const;
 		
 		/**
 		 * 	\brief Builds an interval hull of the domain.
 		 **/
-		IntervalVector hull() const;
+		virtual IntervalVector hull() const;
 		
-		void print() const;
+		virtual void print() const;
 		
 		// the Parallelotope
 		Parallelotope x;

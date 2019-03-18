@@ -5,7 +5,7 @@
  * License     : LGPL, see the file COPYING.LESSER.
  * Author(s)   : Benjamin Martin
  * Created     : 04.02.2019
- * Last Update : 
+ * Last Update : 15.03.2019
  * ---------------------------------------------------------------------------- */
 
 #ifndef __IBEX_PARALLELOTOPE_H__
@@ -68,12 +68,7 @@ class Parallelotope {
 		 * 	- a step length h,
 		 * 	- a vector tan approximately tangent to jac.
 		 **/		
-		Parallelotope(const Vector& xtilde, const Matrix& jac, double h, const Vector& tan)
-		:	C(transformation(jac, tan)),
-			w(auxiliary_box(xtilde.size(),h)),
-			xtilde(xtilde),
-			Cinv(computeInvMatrix(C))
-		{}
+		Parallelotope(const Vector& xtilde, const Matrix& jac, double h, const Vector& tan);
 		
 		/**
 		 * 	\brief Partial copy constructor.
@@ -81,12 +76,12 @@ class Parallelotope {
 		 * 	The transition matrix, its inverse and the center of p are copied.
 		 * 	The characteristic box is set to wn.
 		 **/
-		Parallelotope(const Parallelotope& p, const IntervalVector& wn)
-		:	C(p.C),
-			w(wn),
-			xtilde(p.xtilde),
-			Cinv(p.Cinv)
-		{}
+		Parallelotope(const Parallelotope& p, const IntervalVector& wn);
+		
+		/**
+		 * 	\brief Constructor by transition matrix, auxiliary box and center
+		 **/
+		Parallelotope(const Matrix& C, const IntervalVector& aux, const Vector& xtilde);
 		
 		/**
 		 * 	\brief Returns the interval hull of the parallelotope
@@ -115,21 +110,42 @@ class Parallelotope {
 		size_t size() const;
 		
 		
-		// The characteristic matrix
+		/** \brief The characteristic matrix **/
 		Matrix C;
 		
-		// The characteristic box
+		/** \brief The characteristic box **/
 		IntervalVector w;
 		
-		// The center
+		/** \brief The center **/
 		Vector xtilde;
 		
-		// The enclosure of the inverse of C. Used by the tests.
+		/** \brief The enclosure of the inverse of C. Used by the tests. **/
 		IntervalMatrix Cinv;
 		
 }; // Parallelotope
 
 
+inline 	Parallelotope::Parallelotope(const Vector& xtilde, const Matrix& jac, double h, const Vector& tan)
+		:	C(transformation(jac, tan)),
+			w(auxiliary_box(xtilde.size(),h)),
+			xtilde(xtilde),
+			Cinv(computeInvMatrix(C))
+		{}
+		
+inline 	Parallelotope::Parallelotope(const Parallelotope& p, const IntervalVector& wn)
+		:	C(p.C),
+			w(wn),
+			xtilde(p.xtilde),
+			Cinv(p.Cinv)
+		{}
+
+inline 	Parallelotope::Parallelotope(const Matrix& C, const IntervalVector& aux, const Vector& xtilde)
+		:	C(C),
+			w(aux),
+			xtilde(xtilde),
+			Cinv(computeInvMatrix(C))
+		{}
+		
 inline IntervalVector Parallelotope::hull() const
 {
 	return C*(w) + xtilde;
