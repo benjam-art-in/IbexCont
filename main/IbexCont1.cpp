@@ -32,10 +32,12 @@ int main(int argc, char** argv) {
 	args::ArgumentParser parser("********** IbexCont1 **********", "Continuation on a n x n-1 system of equations in Minibex file.");
 	args::HelpFlag help(parser, "help", "Display this help menu", {'h', "help"});
 	
-	// to be deprecated...
+	args::ValueFlag<std::string> input_cov_file(parser, "filename", "COV input file. The file contains a "
+			"(intermediate) description of the manifold. Results are appended to this file.", {'i',"input"});
+
 	args::ValueFlag<std::string> output_file(parser, "filename", "COV output file. The file will contain the "
 			"description of the manifold with boxes in the COV (binary) format. See --format", {'o',"output"});
-	args::Flag format(parser, "format", "Give a description of the COV format used by IbexSolve", {"format"});
+	args::Flag format(parser, "format", "Give a description of the COV format used by ibexcont", {"format"});
 	
 	args::ValueFlag<double> hmin(parser, "float", "Minimal step length of continuation.", {"hmin"});
 	args::ValueFlag<double> hstart(parser, "float", "Starting step length of continuation.", {"hstart"});
@@ -211,7 +213,6 @@ int main(int argc, char** argv) {
 		if (!quiet)
 		{
 			cout << "  equations:" <<  eq.f_ctrs << endl;
-			cout << "*****************************************************************" << endl << endl;
 		}
 		
 		
@@ -224,6 +225,20 @@ int main(int argc, char** argv) {
 									beta_param
 									);
 									
+		if(input_cov_file)
+		{
+			solver.load_cov(input_cov_file.Get().c_str());
+			if(!quiet)
+			{
+				cout << " results appended to " << input_cov_file.Get() << endl;
+			}
+		}
+		
+		if(!quiet)
+		{
+			cout << "*****************************************************************" << endl << endl;
+		}
+			
 		// Solve it
 		if(!quiet) std::cout << "Solving...";
 		clock_t start_time = clock();

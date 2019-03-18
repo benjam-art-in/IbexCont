@@ -131,6 +131,8 @@ class ContinuationSolver
 		 **/
 		void solve(const Vector& init, double hstart = 1.0);
 		
+		
+		
 		/**
 		 * 	\brief Resets the outputs of the solver.
 		 **/
@@ -148,6 +150,8 @@ class ContinuationSolver
 		size_t get_nb_domains() const;
 		
 		void save_cov(const char* filename) const;
+		
+		void load_cov(const char* filename);
 		
 	protected:
 		
@@ -220,6 +224,11 @@ inline void ContinuationSolver::save_cov(const char* filename) const
 	cov->save(filename);
 }
 
+inline void ContinuationSolver::load_cov(const char* filename)
+{
+	if(cov) delete cov;
+	cov = new CovContinuation(filename);
+}
 //~ inline ContinuationSolver::report()
 //~ {
 	//~ // Not implemented
