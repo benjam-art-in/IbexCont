@@ -27,6 +27,10 @@
 #include "vibes.h"
 #endif
 
+
+//#include <boost/geometry.hpp>
+//#include <boost/geometry/index/rtree.hpp>
+
 using namespace std;
 using namespace ibex;
 
@@ -518,10 +522,51 @@ void test_normalize_paral()
 	//~ System eq(sys, System::EQ_ONLY);
 //~ }
 
+void test_rtree()
+{
+	//~ typedef Vector point;
+    //~ typedef bg::model::box<point> box;
+    //~ typedef std::pair<box, size_t> value;
+
+	//~ typedef IntervalVector my_object;
+	
+	
+    //~ std::vector<my_object> objects;
+
+    //~ /* Fill objects */
+    //~ objects.push_back(IntervalVector(2, Interval(1,2)));
+        //~ objects.push_back(IntervalVector(2, Interval(-2,1)));
+            //~ objects.push_back(IntervalVector(2, Interval(3,6)));
+                //~ objects.push_back(IntervalVector(2, Interval(7,10)));
+
+    //~ // create the R* variant of the rtree
+    //~ bgi::rtree< value, bgi::rstar<16> > rtree;
+
+    //~ // insert some values to the rtree
+    //~ for ( size_t i = 0 ; i < objects.size() ; ++i )
+    //~ {
+        //~ // create a box
+        //~ box b(objects[i].lb(), objects[i].ub());
+        
+        //~ // insert new value
+        //~ rtree.insert(std::make_pair(b, i));
+    //~ }
+
+    //~ // find values intersecting some area defined by a box
+    //~ box query_box(point(2, 0), point(2, 5));
+    //~ std::vector<value> result_s;
+    //~ rtree.query(bgi::intersects(query_box), std::back_inserter(result_s));
+	//~ for(auto v : result_s)
+	//~ {
+		//~ std::cout << v.second << std::endl;
+	//~ }
+}
+
 int main() {
 
+	test_rtree();
 	// test_cont_flower();
-	test_cont_heart();
+	// test_cont_heart();
 	//	test_cont_condition();
 	//	test_cont_dimension();
 	//test_cont_param_synthesis_RRRRRR();

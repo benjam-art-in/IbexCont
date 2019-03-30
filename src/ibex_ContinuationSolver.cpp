@@ -246,7 +246,7 @@ void ContinuationSolver::solve(const Vector& init, double hstart)
 		// Prove xcurrent contains the manifold
 		bool success = false;
 		try{
-			success = xcurrent->certify(equations);
+			success = xcurrent->certify((Fnc&)equations);
 		}
 		catch(SingularMatrixException& e)
 		{
@@ -268,7 +268,7 @@ void ContinuationSolver::solve(const Vector& init, double hstart)
 			//std::cout << "validate the success" << std::endl;
 			// contract Out
 			try{
-				newcheck = xcurrent->contractOut(equations);
+				newcheck = xcurrent->contractOut((Fnc&)equations);
 			}
 			catch(SingularMatrixException& e)
 			{
@@ -302,7 +302,7 @@ void ContinuationSolver::solve(const Vector& init, double hstart)
 			{
 				// contract In and considers it as the first checkpoint
 				try{
-					checkpoints[0] = xcurrent->contractIn(equations);
+					checkpoints[0] = xcurrent->contractIn((Fnc&)equations);
 				}
 				catch(SingularMatrixException& e)
 				{

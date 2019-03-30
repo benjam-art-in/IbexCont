@@ -12,7 +12,7 @@
 #define __IBEX_CONTINUATION_SOLVER_H__
 
 #include <vector>
-#include "ibex_CovIBUList.h"
+#include "ibex_Function.h"
 #include "ibex_ContinuationDomain.h"
 #include "ibex_CovContinuation.h"
 #include "ibex_Timer.h"
@@ -24,9 +24,9 @@ namespace ibex {
  *	\brief Implementation of the ParCont continuation algorithm.
  *
  *  The implementation follows:
- *	Benjamin Martin, Alexandre Goldsztejn, Laurent Granvilliers and Christophe Jermann,
- *	Certified Parallelotope Continuation for One-Manifolds,
- *	SIAM Journal on Numerical Analysis, Volume 51(6), Pages 3373-3401, 2013
+ *	> Benjamin Martin, Alexandre Goldsztejn, Laurent Granvilliers and Christophe Jermann,
+ *	> Certified Parallelotope Continuation for One-Manifolds,
+ *	> SIAM Journal on Numerical Analysis, Volume 51(6), Pages 3373-3401, 2013 
  *
  *	The same class can be used for BoxCont. The two methods operates
  * 	the same algorithm only with small changes.
@@ -36,7 +36,7 @@ class ContinuationSolver
 	public:
 
 		/**
-		 *	\brief Status of the solver (TODO: unused).
+		 *	\brief Status of the solver.
 		 *	- TANGENT_FAILURE: failure when computing a tangent direction.
 		 *	- BACKTRACK: the recently constructed domains goes backward.
 		 *	(may indicate an error in tangent computation)
@@ -75,26 +75,17 @@ class ContinuationSolver
 				/**
 				 * 	\brief Change the direction of continuation.
 				 **/
-				void changeSign()
-				{
-					sign = !sign;
-				}
+				void changeSign();
 				
 				/**
 				 * 	\brief returns the previously evaluated jacobian.
 				 **/
-				const IntervalMatrix& getLastJacobian() const
-				{
-					return lastJacobian;
-				}
+				const IntervalMatrix& getLastJacobian() const;
 				
 				/**
 				 * 	\brief returns the previously evaluated tangent.
 				 **/
-				const Vector& getLastTangent() const
-				{
-					return lastTangent;
-				}
+				const Vector& getLastTangent() const;
 				
 				// direction of continuation
 				bool sign;
@@ -124,6 +115,9 @@ class ContinuationSolver
 							double alpha = default_alpha,
 							double beta = default_beta);
 	
+		/**
+		 * \brief Destructor.
+		 **/
 		~ContinuationSolver();
 		
 		/**
@@ -163,46 +157,51 @@ class ContinuationSolver
 		
 		void check_domain_limit();
 		
-		// The n-1 x n system of equations
+		/** \brief The n-1 x n system of equations. **/
 		Function& equations;
 		
-		// The boundary box
+		/** \brief The boundary box. **/
 		IntervalVector universe;
 		
-		// flag for using boxcont
+		/** \brief flag for using boxcont. **/
 		bool boxcont;
 		
-		// minimal step length
+		/** \brief minimal step length. **/
 		double hmin;
 		
-		// step length decresing factor
+		/** \brief step length decreasing factor. **/
 		double alpha;
 		
-		// step length incresing factor
+		/** \brief step length incresing factor. **/
 		double beta;
 		
-		// flag for using the domain initialisation heuristic
+		/** \brief flag for using the domain initialisation heuristic. **/
 		bool flag_heuristic_init;
 		
-		
+		/** \brief elapsed time. **/
 		double time;
 		
+		/** \brief timer. **/
 		Timer timer;
 		
+		/** \brief number of iterations. **/
 		unsigned int nb_iterations;
 		
+		/** \brief number of ContinuationDomain objects successfully produced. **/
 		unsigned int nb_domains;
 		
+		/** \brief number of connected components. **/
 		unsigned int nb_components;
 		
+		/** \brief status of the solver. **/
 		Status solving_status;
 		
-		public:
+	public:
 		
-		// time limit (unused)
+		/** \brief time limitation (-1 by default, meaning no limit) **/
 		double time_limit;
 		
-		// limit of the number of 
+		/** \brief limit on the number of ContinuationDomain objects (0 by default, meaning no limit) **/
 		unsigned int domain_limit;
 		
 		// For the output: the domains covering the manifold and their 
@@ -213,6 +212,22 @@ class ContinuationSolver
 		CovContinuation* cov;
 		
 }; // ContinuationSolver
+
+inline void ContinuationSolver::ContinuationDirectionBuilder::changeSign()
+{
+	sign = !sign;
+}
+
+inline const IntervalMatrix& ContinuationSolver::ContinuationDirectionBuilder::getLastJacobian() const
+{
+	return lastJacobian;
+}
+
+inline const Vector& ContinuationSolver::ContinuationDirectionBuilder::getLastTangent() const
+{
+	return lastTangent;
+}
+
 
 inline size_t ContinuationSolver::get_nb_domains() const
 {
@@ -229,10 +244,6 @@ inline void ContinuationSolver::load_cov(const char* filename)
 	if(cov) delete cov;
 	cov = new CovContinuation(filename);
 }
-//~ inline ContinuationSolver::report()
-//~ {
-	//~ // Not implemented
-//~ }
 
 } // namespace ibex
 

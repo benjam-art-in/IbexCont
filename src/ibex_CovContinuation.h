@@ -15,7 +15,10 @@
 
 namespace ibex
 {
-	
+	/**
+	 * \todo _continuation_solver_domain_type redundant with parallelotope index information
+	 * from CovParManifold.
+	 **/ 
 	class CovContinuation : public CovParManifold
 	{
 		public:
@@ -23,7 +26,7 @@ namespace ibex
 			/**
 			 * \brief The type of domains added
 			 * 
-			 * TODO: when BOX, adds indication on sense of continuation ?
+			 * \todo when BOX, adds indication on sense of continuation ?
 			 **/
 			typedef enum {PARALLELOTOPE, BOX} DomainType;
 		
