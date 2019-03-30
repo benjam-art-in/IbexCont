@@ -11,7 +11,7 @@
 #ifndef __IBEX_PARFNC_H__
 #define __IBEX_PARFNC_H__
 
-#include <ibex.h>
+#include <ibex_Fnc.h>
 #include "ibex_Parallelotope.h"
 
 namespace ibex {
@@ -27,7 +27,7 @@ class ParFnc : public Fnc {
 		/**
 		 * 	\brief Basic constructor
 		 **/
-		ParFnc(Function& f, const Parallelotope& p) 
+		ParFnc(Fnc& f, const Parallelotope& p) 
 		: 	Fnc(f.nb_var(),f.image_dim()), 
 			f(f), 
 			p(p) 
@@ -57,7 +57,7 @@ class ParFnc : public Fnc {
 
 
 		// the function
-		Function& f;
+		Fnc& f;
 		
 		// the parallelotope
 		const Parallelotope& p;	

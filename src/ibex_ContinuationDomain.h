@@ -12,7 +12,7 @@
 #define __IBEX_CONTINUATION_DOMAIN_H__
 
 #include "ibex_Parallelotope.h"
-#include "ibex_Function.h"
+#include "ibex_Fnc.h"
 
 namespace ibex {
 
@@ -31,19 +31,19 @@ class ContinuationDomain
 		 * \brief Certify the existence and unicity of a piece
 		 * of manifold of solution to f = 0.
 		 **/
-		virtual bool certify(Function& f) = 0;
+		virtual bool certify(Fnc& f) = 0;
 		
 		/**
 		 * 	\brief Contract on the side of the domain where the manifold "enters"
 		 *  the domain. Returns the corresponding domain.
 		 **/
-		virtual ContinuationDomain* contractIn(Function& f) = 0;
+		virtual ContinuationDomain* contractIn(Fnc& f) = 0;
 		
 		/**
 		 * 	\brief Contract on the side of the domain where the manifold "exits"
 		 *  the domain. Returns the corresponding domain
 		 **/
-		virtual ContinuationDomain* contractOut(Function& f) = 0;
+		virtual ContinuationDomain* contractOut(Fnc& f) = 0;
 		
 		/**
 		 * 	\brief Empty intersection test between the domain and a box.
@@ -75,6 +75,7 @@ class ContinuationDomain
 		virtual IntervalVector hull() const = 0;
 		
 		virtual void print() const = 0;
+		
 }; // ContinuationDomain
 
 inline bool ContinuationDomain::not_intersects(const ContinuationDomain& d) const
@@ -91,6 +92,8 @@ inline bool ContinuationDomain::is_superset(const ContinuationDomain& d) const
  * 	\brief Class implementing the Box domain for continuation. 
  * 
  * Used for implementing the BoxCont continuation algorithm.
+ * 
+ * TODO: not necessary to store a varset explicitly ? 
  **/
 class ContinuationDomainBox : public ContinuationDomain
 {
@@ -104,55 +107,51 @@ class ContinuationDomainBox : public ContinuationDomain
 		 * and a sign s indicating if the parameter dimension is crossed in the 
 		 * positive direction.
 		 **/
-		ContinuationDomainBox(const IntervalVector& b, const VarSet& v, bool s)
-		: 	x(b),
-			vs(v),
-			sign(s)
-		{}
+		ContinuationDomainBox(const IntervalVector& b, const VarSet& v, bool s);
 		
 		/**
 		 * \brief Certify the existence and unicity of a piece
 		 * of manifold of solution to f = 0.
 		 **/
-		bool certify(Function& f);
+		virtual bool certify(Fnc& f);
 		
 		/**
 		 * 	\brief Contract on the side of the domain where the manifold "enters"
 		 *  the domain. Returns the corresponding domain.
 		 **/
-		ContinuationDomain* contractIn(Function& f);
+		virtual ContinuationDomain* contractIn(Fnc& f);
 		
 		/**
 		 * 	\brief Contract on the side of the domain where the manifold "exits"
 		 *  the domain. Returns the corresponding domain
 		 **/
-		ContinuationDomain* contractOut(Function& f);
+		virtual ContinuationDomain* contractOut(Fnc& f);
 
 		/**
 		 * 	\brief Empty intersection test between the domain and a box.
 		 **/
-		bool not_intersects(const IntervalVector& b) const;
+		virtual bool not_intersects(const IntervalVector& b) const;
 		
 		/**
 		 * 	\brief Tests whether the domain contains a box.
 		 **/
-		bool is_superset(const IntervalVector& b) const;
+		virtual bool is_superset(const IntervalVector& b) const;
 		
 		/**
 		 * 	\brief Builds an interval hull of the domain.
 		 **/
-		IntervalVector hull() const;
+		virtual IntervalVector hull() const;
 		
-		void print() const;
+		virtual void print() const;
 	
 	
-		// the box
+		/** \brief the box **/
 		IntervalVector x;
 		
-		// the VarSet identifying the "crossed" parameter
+		/** \brief the VarSet identifying the "crossed" parameter **/
 		VarSet vs;
 		
-		// the direction of the manifold within the box
+		/** \brief the direction of the manifold within the box **/
 		bool sign;
 		
 	private:
@@ -160,9 +159,15 @@ class ContinuationDomainBox : public ContinuationDomain
 		/**
 		 * 	\brief Used by contractIn and contractOut
 		 **/
-		ContinuationDomain* contract(Function& f, bool out = true);
+		ContinuationDomain* contract(Fnc& f, bool out = true);
 	
 }; // ContinuationDomainBox
+
+inline ContinuationDomainBox::ContinuationDomainBox(const IntervalVector& b, const VarSet& v, bool s)
+: 	x(b),
+	vs(v),
+	sign(s)
+{}
 
 inline bool ContinuationDomainBox::not_intersects(const IntervalVector& b) const
 {
@@ -187,6 +192,9 @@ inline IntervalVector ContinuationDomainBox::hull() const
  *  Contrary to the box domain, we consider here that parallelotopes can
  *  be build so as to implicitly store the parameter "crossed" by the manifold
  *  and its direction.
+ * 
+ * \todo optimize "hull" operation by adding a hull field storing and up2date
+ * computed hull of the domain. Should be mutable.
  **/ 
 class ContinuationDomainParallelotope : public ContinuationDomain
 {
@@ -195,44 +203,42 @@ class ContinuationDomainParallelotope : public ContinuationDomain
 		/**
 		 *	\brief Basic constructor from a Parallelotope.
 		 **/
-		ContinuationDomainParallelotope(const Parallelotope& p)
-		: 	x(p)			
-		{}
+		ContinuationDomainParallelotope(const Parallelotope& p);
 		
 		/**
 		 * \brief Certify the existence and unicity of a piece
 		 * of manifold of solution to f = 0.
 		 **/
-		bool certify(Function& f);
+		virtual bool certify(Fnc& f);
 		
 		/**
 		 * 	\brief Contract on the side of the domain where the manifold "enters"
 		 *  the domain. Returns the corresponding domain.
 		 **/
-		ContinuationDomain* contractIn(Function& f);
+		virtual ContinuationDomain* contractIn(Fnc& f);
 		
 		/**
 		 * 	\brief Contract on the side of the domain where the manifold "exits"
 		 *  the domain. Returns the corresponding domain
 		 **/
-		ContinuationDomain* contractOut(Function& f);
+		virtual ContinuationDomain* contractOut(Fnc& f);
 		
 		/**
 		 * 	\brief Empty intersection test between the domain and a box.
 		 **/
-		bool not_intersects(const IntervalVector& b) const;
+		virtual bool not_intersects(const IntervalVector& b) const;
 		
 		/**
 		 * 	\brief Tests whether the domain contains a box.
 		 **/
-		bool is_superset(const IntervalVector& b) const;
+		virtual bool is_superset(const IntervalVector& b) const;
 		
 		/**
 		 * 	\brief Builds an interval hull of the domain.
 		 **/
-		IntervalVector hull() const;
+		virtual IntervalVector hull() const;
 		
-		void print() const;
+		virtual void print() const;
 		
 		// the Parallelotope
 		Parallelotope x;
@@ -242,8 +248,12 @@ class ContinuationDomainParallelotope : public ContinuationDomain
 		/**
 		 * 	\brief Used by contractIn and contractOut
 		 **/	
-		ContinuationDomain* contract(Function& f, bool out = true);
+		ContinuationDomain* contract(Fnc& f, bool out = true);
 }; // ContinuationDomainParallelotope
+
+inline 	ContinuationDomainParallelotope::ContinuationDomainParallelotope(const Parallelotope& p)
+: 	x(p)			
+{}
 
 inline bool ContinuationDomainParallelotope::not_intersects(const IntervalVector& b) const
 {

@@ -16,7 +16,7 @@
 #include <ctime> // Temporary
 
 #include "args.hxx"
-#include "ibex_ParCont.h"
+#include "ibex_ContinuationSolver.h"
 #include <sstream>
 
 //~ #ifndef _IBEX_WITH_CONT1_
@@ -29,8 +29,15 @@ using namespace ibex;
 int main(int argc, char** argv) {
 	
 	
-	args::ArgumentParser parser("********** IbexCont1 **********.", "Continuation on a n x n-1 system of equations in Minibex file.");
+	args::ArgumentParser parser("********** IbexCont1 **********", "Continuation on a n x n-1 system of equations in Minibex file.");
 	args::HelpFlag help(parser, "help", "Display this help menu", {'h', "help"});
+	
+	args::ValueFlag<std::string> input_cov_file(parser, "filename", "COV input file. The file contains a "
+			"(intermediate) description of the manifold. Results are appended to this file.", {'i',"input"});
+
+	args::ValueFlag<std::string> output_file(parser, "filename", "COV output file. The file will contain the "
+			"description of the manifold with boxes in the COV (binary) format. See --format", {'o',"output"});
+	args::Flag format(parser, "format", "Give a description of the COV format used by ibexcont", {"format"});
 	
 	args::ValueFlag<double> hmin(parser, "float", "Minimal step length of continuation.", {"hmin"});
 	args::ValueFlag<double> hstart(parser, "float", "Starting step length of continuation.", {"hstart"});
@@ -38,7 +45,9 @@ int main(int argc, char** argv) {
 	args::ValueFlag<double> beta(parser, "float", "Increasing step length factor.", {"beta"});
 	args::Flag boxcont(parser, "boxcont", "Use the box continuation algorithm (parallelotope by default)",{"boxcont"});
 	
+
 	// TODO Adds verbose, trace, quiet, output, ...
+	args::Flag quiet(parser, "quiet", "Print no report on the standard output.",{'q',"quiet"});
 	
 	args::Positional<std::string> filename(parser, "filename", "The name of the MINIBEX file.");
 	args::PositionalList<double> initpoint(parser, "initpoint", "The starting point (blank separated float coordinates). Missing coordinates are treated as 0.");
@@ -72,9 +81,64 @@ int main(int argc, char** argv) {
 		exit(1);
 	}
 	
+	if(format)
+	{
+		cout << CovContinuation::format() << endl;
+		exit(0);
+	}
 	
 	try
 	{
+		if (!quiet) 
+		{
+			cout << endl << "***************************** setup *****************************" << endl;
+			cout << "  file loaded:\t\t" << filename.Get() << endl;
+		}
+		
+		// output_file management taken from ibexsolve
+		string output_manifold_file;
+		bool overwitten=false;       // is it overwritten?
+		string manifold_copy;
+		
+		if (output_file) 
+		{
+			output_manifold_file = output_file.Get();
+		} 
+		else 
+		{
+			// got from stackoverflow.com:
+			string::size_type const p(filename.Get().find_last_of('.'));
+			// filename without extension
+			string filename_no_ext=filename.Get().substr(0, p);
+			stringstream ss;
+			ss << filename_no_ext << ".cov";
+			output_manifold_file=ss.str();
+
+			ifstream file;
+			file.open(output_manifold_file.c_str(), ios::in); // to check if it exists
+
+			if (file.is_open()) 
+			{
+				overwitten = true;
+				stringstream ss;
+				ss << output_manifold_file << "~";
+				manifold_copy=ss.str();
+				// got from stackoverflow.com:
+				ofstream dest(manifold_copy, ios::binary);
+
+			    istreambuf_iterator<char> begin_source(file);
+			    istreambuf_iterator<char> end_source;
+			    ostreambuf_iterator<char> begin_dest(dest);
+			    copy(begin_source, end_source, begin_dest);
+			}
+			file.close();
+		}
+		
+		if (!quiet)
+		{
+			cout << "  output file:\t\t" << output_manifold_file << "\n";
+		}
+		
 		// check parameters
 		double min_h = hmin ? hmin.Get() : ContinuationSolver::default_hmin;
 		if(min_h <= 0.0)
@@ -82,18 +146,22 @@ int main(int argc, char** argv) {
 			// just a warning if hmin is set to zero (or negative).
 			std::cout << "\nWarning: hmin has been set to 0 or a negative value.\n";
 		}
+		
 		if(alpha && (alpha.Get() < 0.0 || alpha.Get() >= 1.0))
 		{
 			// alpha must lie within [0, 1)
 			std::cerr << "\nError: alpha must be within [0,1).\n";
 			exit(0);
 		}
+		double alpha_param = (alpha) ? alpha.Get() : ContinuationSolver::default_alpha;
+		
 		if(beta && (beta.Get() < 1.0))
 		{
 			// beta must be > 1
 			std::cerr << "\nError: beta must be greater than 1.\n";
 			exit(0);
 		}
+		double beta_param = (beta) ? beta.Get() : ContinuationSolver::default_beta;
 		
 		double start_h = hstart ? hstart.Get() : 1.0;
 		if(start_h < min_h)
@@ -102,6 +170,15 @@ int main(int argc, char** argv) {
 			exit(0);
 		}
 		
+		if (!quiet)
+		{
+			cout << "  box   :\t\t" << ((boxcont) ? " yes" : " no") << endl;
+			cout << "  hstart:\t\t" << start_h << endl;
+			cout << "  hmin  :\t\t" << min_h << endl;
+			cout << "  alpha :\t\t" << alpha_param << endl;
+			cout << "  beta  :\t\t" << beta_param << endl;
+		}
+				
 		// Load the system
 		System sys(filename.Get().c_str());
 		
@@ -133,26 +210,55 @@ int main(int argc, char** argv) {
 		}
 		//cout << "initial " << init << endl;
 		
-		//cout << eq.f_ctrs << endl;
+		if (!quiet)
+		{
+			cout << "  equations:" <<  eq.f_ctrs << endl;
+		}
+		
 		
 		// Create the continuation solver
 		ContinuationSolver solver(	eq.f_ctrs,
 									sys.box,
 									boxcont,
 									min_h,
-									alpha ? alpha.Get() : ContinuationSolver::default_alpha,
-									beta ? beta.Get() : ContinuationSolver::default_beta
+									alpha_param,
+									beta_param
 									);
 									
+		if(input_cov_file)
+		{
+			solver.load_cov(input_cov_file.Get().c_str());
+			if(!quiet)
+			{
+				cout << " results appended to " << input_cov_file.Get() << endl;
+			}
+		}
+		
+		if(!quiet)
+		{
+			cout << "*****************************************************************" << endl << endl;
+		}
+			
 		// Solve it
-		std::cout << "Solving...";
+		if(!quiet) std::cout << "Solving...";
 		clock_t start_time = clock();
 		solver.solve(init, start_h);
-		std::cout << " done !\n";
+		if(!quiet) std::cout << " done !\n";
 		
 		// TODO: output
-		std::cout << "Solving took " << ((double)(clock()-start_time))/CLOCKS_PER_SEC << " s.";
-		std::cout << " Produced " << solver.manifold_out.size() << " elements" << endl;
+		if(!quiet)
+		{
+			solver.report();
+		}
+		
+		solver.save_cov(output_manifold_file.c_str());
+
+		if (!quiet) 
+		{
+			cout << " results written in " << output_manifold_file << "\n";
+			if (overwitten)
+				cout << " (old file saved in " << manifold_copy << ")\n";
+		}
 	}
 	catch(ibex::UnknownFileException& e) {
 		cerr << "Error: cannot read file '" << filename.Get() << "'" << endl;

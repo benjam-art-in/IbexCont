@@ -16,7 +16,7 @@ namespace ibex {
 	
 	/** ContinuationDomainBox **/
 	
-	bool ContinuationDomainBox::certify(Function& f)
+	bool ContinuationDomainBox::certify(Fnc& f)
 	{
 		IntervalVector xe(x);
 		IntervalVector xu(x);
@@ -32,17 +32,17 @@ namespace ibex {
 		return cert;
 	}
 	
-	ContinuationDomain* ContinuationDomainBox::contractIn(Function& f)
+	ContinuationDomain* ContinuationDomainBox::contractIn(Fnc& f)
 	{
 		return contract(f, false);
 	}
 
-	ContinuationDomain* ContinuationDomainBox::contractOut(Function& f)
+	ContinuationDomain* ContinuationDomainBox::contractOut(Fnc& f)
 	{
 		return contract(f, true);
 	}
 	
-	ContinuationDomain* ContinuationDomainBox::contract(Function& f, bool out)
+	ContinuationDomain* ContinuationDomainBox::contract(Fnc& f, bool out)
 	{
 		IntervalVector p(vs.param_box(x));
 		
@@ -77,7 +77,7 @@ namespace ibex {
 
 	/** ContinuationDomainParallelotope **/
 		
-	bool ContinuationDomainParallelotope::certify(Function& f)
+	bool ContinuationDomainParallelotope::certify(Fnc& f)
 	{
 		// Creation of the VarSet for parametric Newton
 		// NOTE: we could avoid this by having a newton automatically
@@ -104,17 +104,17 @@ namespace ibex {
 		return cert;
 	}
 	
-	ContinuationDomain* ContinuationDomainParallelotope::contractIn(Function& f)
+	ContinuationDomain* ContinuationDomainParallelotope::contractIn(Fnc& f)
 	{
 		return contract(f, false);
 	}
 
-	ContinuationDomain* ContinuationDomainParallelotope::contractOut(Function& f)
+	ContinuationDomain* ContinuationDomainParallelotope::contractOut(Fnc& f)
 	{
 		return contract(f, true);
 	}	
 	
-	ContinuationDomain* ContinuationDomainParallelotope::contract(Function& f, bool out)
+	ContinuationDomain* ContinuationDomainParallelotope::contract(Fnc& f, bool out)
 	{
 		size_t n = x.size();
 		// Creation of the VarSet for parametric Newton
