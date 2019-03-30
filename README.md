@@ -1,8 +1,8 @@
 # IbexCont1
 
 <!-- ![](doc/figs/flower_p.png) -->
-@image latex doc/figs/flower_p.png "" width=0.5\textwidth
-<img src="flower_p.png" width=400>
+<!-- @image latex doc/figs/flower_p.png "" width=0.5\textwidth -->
+<img src="doc/figs/flower_p.png" width=400>
 
 IbexCont1 is a plugin for Ibex (http://www.ibex-lib.org/) implementing a rigorous continuation of one dimensional manifolds implicitly defined by a system of equations with *n* variables and *n-1* equations. This is an implementation of the following paper: 
 
