@@ -73,9 +73,14 @@ class ContinuationSolver
 				bool buildNewDirection(Function& eq, const IntervalVector& p);
 				
 				/**
-				 * 	\brief Change the direction of continuation.
+				 * 	\brief switch the direction of continuation.
 				 **/
-				void changeSign();
+				void switchSign();
+				
+				/**
+				 * \brief set the direction of continuation to the input on e 
+				 **/
+				void setSign(bool s);
 				
 				/**
 				 * 	\brief returns the previously evaluated jacobian.
@@ -149,6 +154,20 @@ class ContinuationSolver
 		
 	protected:
 		
+		//~ bool has_next_component() const;
+		
+		//~ size_t get_next_component() const;
+		
+		//~ ContinuationDomain* get_right_connector(size_t c) const;
+		
+		//~ bool get_component_sense(size_t c) const;
+		
+		//~ bool continuable_component(size_t c) const;
+		
+		//~ void continuation(size_t c, double hstart);
+		
+		//~ bool certify_and_check(size_t& c, ContinuationDomain* xc);
+		
 		void init_solving(size_t n);
 		
 		void stop_solving(Status stat);
@@ -195,6 +214,14 @@ class ContinuationSolver
 		
 		/** \brief status of the solver. **/
 		Status solving_status;
+
+
+		/** \brief all elements produced **/
+		//~ NaiveSpatialIndex<ContinuationDomain*> spindex;
+	
+		//~ /** \brief Connected components **/
+		//~ std::vector<ConnectedComponentOne*> components;
+		
 		
 	public:
 		
@@ -209,13 +236,21 @@ class ContinuationSolver
 		std::vector<ContinuationDomain*> manifold;
 		std::vector<ContinuationDomain*> checkpoints;
 		
+		
+		
+		
 		CovContinuation* cov;
 		
 }; // ContinuationSolver
 
-inline void ContinuationSolver::ContinuationDirectionBuilder::changeSign()
+inline void ContinuationSolver::ContinuationDirectionBuilder::switchSign()
 {
 	sign = !sign;
+}
+
+inline void ContinuationSolver::ContinuationDirectionBuilder::setSign(bool s)
+{
+	sign  = s;
 }
 
 inline const IntervalMatrix& ContinuationSolver::ContinuationDirectionBuilder::getLastJacobian() const
@@ -228,6 +263,20 @@ inline const Vector& ContinuationSolver::ContinuationDirectionBuilder::getLastTa
 	return lastTangent;
 }
 
+//~ inline ContinuationDomain* ContinuationSolver::get_right_connector(size_t c) const
+//~ {
+	//~ assert(c < components.size());
+	//~ //assert(components[c].get_left_connector != nullptr);
+	
+	//~ return (components[c].is_empty() ? components[c].get_left_connector() : components[c].get_right_connector());
+//~ }
+
+//~ inline bool ContinuationSolver::get_component_sense(size_t c) const
+//~ {
+	//~ assert(c < components.size());
+	
+	//~ return components[c].get_sense();
+//~ }
 
 inline size_t ContinuationSolver::get_nb_domains() const
 {

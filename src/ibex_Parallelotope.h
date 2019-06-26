@@ -104,6 +104,11 @@ class Parallelotope {
 		bool is_superset(const IntervalVector& x) const;
 		
 		/**
+		 * \brief make the union with a box.
+		 **/
+		void join(const IntervalVector& x);
+		
+		/**
 		 * 	\brief The size of the parallelotope: the dimension of the space
 		 * 	in which it is embedded
 		 **/
@@ -166,6 +171,11 @@ inline bool Parallelotope::not_intersects(const IntervalVector& x) const
 inline bool Parallelotope::is_superset(const IntervalVector& x) const
 {
 	return (Cinv*(x - xtilde)).is_subset(w);	
+}
+
+inline void Parallelotope::join(const IntervalVector& x)
+{
+	w |= Cinv*(x-xtilde);
 }
 
 inline size_t Parallelotope::size() const

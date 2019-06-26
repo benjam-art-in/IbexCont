@@ -184,7 +184,7 @@ int main(int argc, char** argv) {
 		
 		// Get the equations
 		System eq(sys, System::EQ_ONLY);
-		if(eq.nb_var != eq.nb_ctr +1)
+		if(eq.nb_var != eq.f_ctrs.image_dim()+1)//eq.nb_ctr +1)
 		{
 			std::cerr << "\nError: " << "System of equations with " << eq.nb_var << " variables and " << eq.nb_ctr << " equations (it should be n x n-1).\n";
 			exit(0); 
@@ -212,7 +212,7 @@ int main(int argc, char** argv) {
 		
 		if (!quiet)
 		{
-			cout << "  equations:" <<  eq.f_ctrs << endl;
+			//cout << "  equations:" <<  eq.f_ctrs << endl;
 		}
 		
 		

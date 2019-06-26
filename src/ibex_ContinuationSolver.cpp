@@ -163,6 +163,166 @@ void ContinuationSolver::check_domain_limit()
 		throw MaxNumberDomainException();
 }
 
+
+//~ void ContinuationSolver::solvebis(double hstart)
+//~ {
+	//~ size_t n = equations.nb_var();
+	
+	//~ init_solving(n);
+	
+	
+	//~ try
+	//~ {
+		//~ while(has_next_component())
+		//~ {
+			//~ // get the next component with a free connector
+			//~ size_t c = get_next_component();
+			//~ try
+			//~ {
+				//~ continuation(c, hstart);
+			//~ }
+			//~ catch(SingularMatrixException& e)
+			//~ {
+				//~ // maybe we can avoid to stop solving and continue with another component
+				//~ stop_solving(Status::TANGENT_FAILURE);
+				//~ return;
+			//~ } // TODO: add an exception in case of backtrack
+		//~ }
+	//~ }
+	//~ catch(TimeOutException& e)
+	//~ {
+		//~ stop_solving(Status::TIME_OUT);
+	//~ }
+	//~ catch(MaxNumberDomainException& e)
+	//~ {
+		//~ stop_solving(Status::MAX_STEP_NUMBER);
+	//~ }
+//~ }
+
+//~ void ContinuationSolver::continuation(size_t c, double hstart)
+//~ {
+	//~ size_t n = equations.nb_var();
+	
+	//~ ContinuationDirectionBuilder contbuild(n);
+	
+	//~ ContinuationDomain* connector = get_right_connector(c);
+	//~ Vector xtildek(connector->hull().mid());
+	
+	//~ // TODO: the sense of continuation has to be limited
+	//~ contbuild.setSign(get_component_sense(c));
+	//~ contbuild.buildNewDirection(equations, xtildek); 
+	
+	//~ bool stop = false;
+	//~ double h = hstart;
+	
+	//~ while(! stop)
+	//~ {
+		//~ // check stopping conditions (if they are set).
+		//~ if(time_limit > 0.0) check_time();
+		//~ if(domain_limit > 0) check_domain_limit();
+		
+		//~ // Build a new domain.
+		//~ ContinuationDomain* xcurrent = buildNewContinuationDomain(boxcont, contbuild, h, xtildek, connector, (flag_heuristic_init && !lastFail) ? manifold[k-2] : nullptr);
+
+		//~ bool success = certify_and_check(c, xcurrent);
+		
+		//~ if(success)
+		//~ {
+			//~ // successful step
+			
+			//~ nb_domains++;
+			
+			//~ // check if continuation is finished
+			//~ if(!continuable_component(c))
+			//~ {
+				//~ return;
+			//~ }
+			
+			//~ h *= beta;
+			//~ k = k+1;
+			
+			//~ connector = get_right_connector(c);
+			//~ xtildek = connector->hull().mid();
+			
+			//~ contbuild.buildNewDirection(equations,xtildek);
+		//~ }
+		//~ else
+		//~ {
+			//~ lastFail = true;
+
+			//~ h *= alpha;
+			//~ delete xcurrent;
+	
+			//~ if(h <= hmin)
+			//~ {
+				//~ // TODO: check singularity / close the right connector
+				
+				//~ return;
+			//~ }
+		//~ }
+		
+		//~ nb_iterations++;
+	//~ }
+	
+//~ }
+
+//~ bool ContinuationSolver::certify_and_check(size_t& c, ContinuationDomain* xc)
+//~ {
+	//~ assert(c < components.size());
+	
+	//~ if(xc->certify((Fnc&)equations))
+	//~ {
+		//~ // validate the success
+		
+		//~ // check loop
+		//~ bool is_loop = false;
+		//~ if(! components[c].is_empty())
+		//~ {
+			//~ ContinuationDomain* lc = components[c].get_left_connector();
+			//~ if(! xc->not_intersects(*lc))
+			//~ {
+				//~ // there is an intersection, check if everything is alright
+				//~ is_loop = xc->is_superset(*lc);
+				//~ if(!is_loop) // TEST
+				//~ {
+					//~ // xc is not enclosing lc, force a union and certify again
+					//~ xc->join(*lc);
+					//~ is_loop = xc->certify((Fnc&)equations);
+					//~ if(!is_loop) return false;
+				//~ }
+			//~ }			
+		//~ }
+		
+		//~ // check join
+		
+		
+		//~ ContinuationDomain* newcheck = xc->contractOut((Fnc&)equations);
+		//~ IntervalVector newcheck_hull(newcheck->hull());
+		
+		
+		//~ // check backtrack
+		//~ bool is_backtrack = false;
+		//~ if(! components[c].is_empty())
+		//~ {
+			//~ // TODO
+		//~ }
+		//~ if(is_backtrack) // TODO: thow exception
+		
+		//~ // check domain
+		//~ bool is_domain = ! universe.intersects(newcheck_hull); 
+		//~ if(!is_domain && ! universe.is_superset(xcurrent->hull())) return false;
+		
+		//~ // successful
+		//~ components[c].push_right(xc, newcheck);
+		//~ if(is_loop) components[c].close_loop();
+		//~ else if(is_domain) components[c].close_right();
+	//~ }
+	//~ else
+	//~ {
+		//~ return false;
+	//~ }
+//~ }
+
 void ContinuationSolver::solve(const Vector& init, double hstart)
 {
 	
@@ -283,11 +443,20 @@ void ContinuationSolver::solve(const Vector& init, double hstart)
 			// Validate the sucess: 1) No backtrack 2) loop from the begining 3) Crossing the domain or remaining inside
 			no_backtrack = (k==1) || (manifold[k-2]->not_intersects(*newcheck) && xcurrent->not_intersects(*checkpoints[k-2]));
 
+			//~ std::cout << "loop test " << std::endl;
 			bool no_loop = (k==1) || (xcurrent->not_intersects(*checkpoints[0])) || xcurrent->is_superset(*checkpoints[0]);
+			if(! no_loop)
+			{
+					// TODO: try to make the union and certify again !
+			}
 
 			//if (k>1)
 			bool no_domain = !(universe.intersects(newcheck_hull)) || universe.is_superset(xcurrent->hull());
 			
+			
+			//~ std::cout << no_backtrack << " " << no_loop << " " << no_domain << std::endl;
+			//~ std::cout << xcurrent->hull() << std::endl;
+			//~ if(k>1) std::cout << checkpoints[0]->hull() << std::endl;
 			// update the success status accordingly
 			success = no_backtrack  && no_loop && no_domain;	
 		}
@@ -297,6 +466,7 @@ void ContinuationSolver::solve(const Vector& init, double hstart)
 		// update the step length and check stopping condition
 		if (success)
 		{
+			//~ std::cout << "sucessful iteration" << std::endl;
 
 			if (k == 1)
 			{
@@ -334,7 +504,7 @@ void ContinuationSolver::solve(const Vector& init, double hstart)
 			{
 				other_direction = true;
 				// reverse the continuation domains, direction of continuation and restart
-				contbuild.changeSign();
+				contbuild.switchSign();
 				std::reverse(manifold.begin(), manifold.end());
 				std::reverse(checkpoints.begin(), checkpoints.end());
 
@@ -375,6 +545,8 @@ void ContinuationSolver::solve(const Vector& init, double hstart)
 		}
 		else
 		{
+						//~ std::cout << "fail iteration" << std::endl;
+						
 			lastFail = true;
 
 			h *= alpha;

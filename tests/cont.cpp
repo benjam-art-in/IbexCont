@@ -15,21 +15,24 @@
 #include <vector>
 #include <ctime>
 
+
+#include "ibex_Linear.h"
+#include "ibex_Kernel.h"
 #include "ibex_ContinuationSolver.h"
 #include "ibex_ContinuationDomain.h"
 #include "ibex_Parallelotope.h"
 #include "ibex_ParFnc.h"
 
+#include "ibex_RTree.h"
 
-//#define __USE_VIBES__
+#define __USE_VIBES__
 
 #ifdef __USE_VIBES__
 #include "vibes.h"
 #endif
 
 
-//#include <boost/geometry.hpp>
-//#include <boost/geometry/index/rtree.hpp>
+
 
 using namespace std;
 using namespace ibex;
@@ -505,6 +508,8 @@ void test_normalize_paral()
 	cout << J << endl;
 	
 	
+	
+	
 }
 
 //~ void test_minibex()
@@ -524,47 +529,190 @@ void test_normalize_paral()
 
 void test_rtree()
 {
-	//~ typedef Vector point;
-    //~ typedef bg::model::box<point> box;
-    //~ typedef std::pair<box, size_t> value;
-
-	//~ typedef IntervalVector my_object;
+	// tree of (pointer to) boxes
+	int n = 2;
+	unsigned int M = 4;
+	RTree<IntervalVector> tree(M);
+	
+	IntervalVector b1(n); b1[0] = Interval(1,2); b1[1] = Interval(3,4);
+	IntervalVector b2(n); b2[0] = Interval(2.5,3); b2[1] = Interval(0,4);
+	IntervalVector b3(n); b3[0] = Interval(2,3.5); b3[1] = Interval(1,1.5);
+	IntervalVector b4(n); b4[0] = Interval(4,5); b4[1] = Interval(0,1);
+	
+	IntervalVector b51(n); b51[0] = Interval(0.5,1); b51[1] = Interval(0.5,1.5);
+	IntervalVector b52(n); b52[0] = Interval(4,5); b52[1] = Interval(3.5,4);
+	
+	tree.insert(b1,&b1);
+	tree.insert(b2,&b2);
+	tree.insert(b3,&b3);
+	tree.insert(b4,&b4);
+	
+	cout << "b1 at " << &b1 << endl;
+	cout << "b2 at " << &b2 << endl;
+	cout << "b3 at " << &b3 << endl;
+	cout << "b4 at " << &b4 << endl;
+	
+	cout << "b51 at " << &b51 << endl;
+	cout << "b52 at " << &b52 << endl;
+	
+	cout << tree << endl;
 	
 	
-    //~ std::vector<my_object> objects;
+		cout << "adding b51 ..." << endl;
+	tree.insert(b51,&b51);
+	cout << "done" << endl;
+	
+	
 
-    //~ /* Fill objects */
-    //~ objects.push_back(IntervalVector(2, Interval(1,2)));
-        //~ objects.push_back(IntervalVector(2, Interval(-2,1)));
-            //~ objects.push_back(IntervalVector(2, Interval(3,6)));
-                //~ objects.push_back(IntervalVector(2, Interval(7,10)));
+	cout << tree << endl;
+	
+}
 
-    //~ // create the R* variant of the rtree
-    //~ bgi::rtree< value, bgi::rstar<16> > rtree;
+void test_comparison_rtree(unsigned int n, unsigned int N, unsigned int q, unsigned int M)
+{
+	double lb = 0.0, ub = 100.0;
+	double wid = 10.0;
+	
+	// randomly generate boxes
+	vector<IntervalVector> elements;
+	for(int i = 0; i < N; ++i)
+	{
+		IntervalVector e(n);
+		for(int k = 0; k < n; k++)
+		{
+			double c = (((double) rand()) / RAND_MAX) * (ub-lb) + lb;
+			double w = (((double) rand()) / RAND_MAX) * wid;
+			e[k] = c + w*Interval(-1.0,1.0);
+		}
+		elements.push_back(e);
+	}
+	
+	
+	
+	// construct RTree and NaiveSpatialIndex
+	RTree<IntervalVector> tree(M);
+	NaiveSpatialIndex<IntervalVector> naive;
+	
+	clock_t start = clock();
+	for(int i = 0; i < elements.size(); ++i)
+	{
+		tree.insert(elements[i], &elements[i]);
+		
+	}
+	cout << "Inserting in RTree took " << ((double)(clock()-start))/CLOCKS_PER_SEC << " s" << endl;
+	
+	start = clock();
+	for(int i = 0; i < elements.size(); ++i)
+	{
+		naive.insert(elements[i], &elements[i]);
+	}
+	cout << "Inserting in Naive index took " << ((double)(clock()-start))/CLOCKS_PER_SEC << " s" << endl;
+	
+	
+	double time_tree = 0.0, time_naive = 0.0;
+	for(int i = 0; i < q; ++i)
+	{
+		IntervalVector e(n);
+		for(int k = 0; k < n; k++)
+		{
+			double c = (((double) rand()) / RAND_MAX) * (ub-lb) + lb;
+			double w = (((double) rand()) / RAND_MAX) * wid;
+			e[k] = c + w*Interval(-1.0,1.0);
+		}
+		
+		vector<IntervalVector*> results;
+		vector<IntervalVector*> results2;
+		
+		start = clock();
+		tree.search_intersecting(e, results);
+		time_tree += ((double)(clock()-start))/CLOCKS_PER_SEC;
+		
+		start = clock();
+		naive.search_intersecting(e, results2);
+		time_naive += ((double)(clock()-start))/CLOCKS_PER_SEC;
+		
+		if(results.size() != results2.size())
+		{
+			cout << "inconsistent query" << endl;
+		}
+	}
+	
+		cout << "Querying in RTree took " << time_tree << " s" << endl;
+		cout << "Querying in Naive took " << time_naive << " s" << endl;
+	
+}
 
-    //~ // insert some values to the rtree
-    //~ for ( size_t i = 0 ; i < objects.size() ; ++i )
-    //~ {
-        //~ // create a box
-        //~ box b(objects[i].lb(), objects[i].ub());
-        
-        //~ // insert new value
-        //~ rtree.insert(std::make_pair(b, i));
-    //~ }
+#include <list>
+#define COL_SOLUTION "black[#c869ff]"
+#define COL_OUTER "black[#ff413c]"
 
-    //~ // find values intersecting some area defined by a box
-    //~ box query_box(point(2, 0), point(2, 5));
-    //~ std::vector<value> result_s;
-    //~ rtree.query(bgi::intersects(query_box), std::back_inserter(result_s));
-	//~ for(auto v : result_s)
-	//~ {
-		//~ std::cout << v.second << std::endl;
-	//~ }
+void test_rtree2(unsigned int N, unsigned int M)
+{
+	unsigned int n = 2;
+	double lb = 0.0, ub = 100.0;
+	double wid = 10.0;
+	
+	// randomly generate boxes
+	vector<IntervalVector> elements;
+	for(int i = 0; i < N; ++i)
+	{
+		IntervalVector e(n);
+		for(int k = 0; k < n; k++)
+		{
+			double c = (((double) rand()) / RAND_MAX) * (ub-lb) + lb;
+			double w = (((double) rand()) / RAND_MAX) * wid;
+			e[k] = c + w*Interval(-1.0,1.0);
+		}
+		elements.push_back(e);
+	}
+	
+	RTree<IntervalVector> tree(M);
+	for(int i = 0; i < elements.size(); ++i)
+	{
+		tree.insert(elements[i], &elements[i]);
+		
+	}
+	
+	cout << tree << endl;
+	
+	vibes::beginDrawing();
+	
+	list< const RTreeNode<IntervalVector>* > res; res.push_back(tree.get_root());
+	while(! res.empty())
+	{
+		const RTreeNode<IntervalVector>* nd = res.front();
+
+		if(nd == nullptr)
+			cout << "what ?" << endl;
+		if(nd->is_leaf())
+		{
+			for(int i = 0; i < nd->nb_entries(); ++i)
+			{
+				vibes::drawBox(nd->get_box(i), COL_SOLUTION);
+			}
+		}
+		else
+		{
+			for(int i = 0; i < nd->nb_entries(); ++i)
+			{
+				vibes::drawBox(nd->get_box(i), COL_OUTER);
+				res.push_back(nd->get_child(i));
+			}
+		}
+		
+				res.pop_front();
+	}
+	
+	// string[10] = 
+	vibes::endDrawing();
 }
 
 int main() {
 
-	test_rtree();
+	//test_rtree();
+	
+	test_comparison_rtree(2, 10000, 5000, 4);
+	//test_rtree2(16, 4);
 	// test_cont_flower();
 	// test_cont_heart();
 	//	test_cont_condition();

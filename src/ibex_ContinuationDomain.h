@@ -74,6 +74,16 @@ class ContinuationDomain
 		 **/
 		virtual IntervalVector hull() const = 0;
 		
+		/**
+		 * \brief make the union with another domain.
+		 **/
+		void join(const ContinuationDomain& d);
+		 
+		/**
+		 * \brief make the union with a box.
+		 **/
+		virtual void join(const IntervalVector& d) = 0;
+		
 		virtual void print() const = 0;
 		
 }; // ContinuationDomain
@@ -86,6 +96,11 @@ inline bool ContinuationDomain::not_intersects(const ContinuationDomain& d) cons
 inline bool ContinuationDomain::is_superset(const ContinuationDomain& d) const
 {
 	return is_superset(d.hull());
+}
+
+inline void ContinuationDomain::join(const ContinuationDomain& d)
+{
+	join(d.hull());
 }
 		
 /**
@@ -142,6 +157,11 @@ class ContinuationDomainBox : public ContinuationDomain
 		 **/
 		virtual IntervalVector hull() const;
 		
+		/**
+		 * \brief make the union with a box.
+		 **/
+		virtual void join(const IntervalVector& d);
+		
 		virtual void print() const;
 	
 	
@@ -182,6 +202,11 @@ inline bool ContinuationDomainBox::is_superset(const IntervalVector& b) const
 inline IntervalVector ContinuationDomainBox::hull() const
 {
 	return x;
+}
+
+inline void ContinuationDomainBox::join(const IntervalVector& d)
+{
+	x |= d;
 }
 
 
@@ -238,6 +263,11 @@ class ContinuationDomainParallelotope : public ContinuationDomain
 		 **/
 		virtual IntervalVector hull() const;
 		
+		/**
+		 * \brief make the union with a box.
+		 **/
+		virtual void join(const IntervalVector& d);
+		
 		virtual void print() const;
 		
 		// the Parallelotope
@@ -270,7 +300,10 @@ inline IntervalVector ContinuationDomainParallelotope::hull() const
 	return x.hull();
 }
 
-
+inline void ContinuationDomainParallelotope::join(const IntervalVector& d)
+{
+	x.join(d);
+}
 
 /**
  * 	\brief Factory for constructing new instances of ContinuationDomain.
